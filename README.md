@@ -42,6 +42,7 @@ If X = 2, the Pi will record data regardless of pin 26, without pictures.
 
 ### Running icarus inside a Python script or Jupyter Notebook
 
+If icarus.py is running in the background, make sure to kill it first (see above).
 Running the main icarus loop can be done within a Python script or notebook with the following lines:
 ```
 import icarus
