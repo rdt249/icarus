@@ -19,6 +19,11 @@ is missing the Pi will never finish booting.
 
 The standard increment between pics and data samples is 10 seconds. This can be changed by simply editing `increment` in icarus.py.
 
+The camera and GPS will not be usable by any other scripts while icarus.py is running in the background. To kill the script use:
+```
+sudo pkill -9 -f icarus.py
+```
+
 ### Setting up hardware
 
 Besides obvious things like the camera, sensors, and power supply, there is only one other step for setting up the Pi.
