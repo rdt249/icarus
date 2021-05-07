@@ -31,6 +31,9 @@ baro = adafruit_mpl3115a2.MPL3115A2(i2c) # init barometer
 hygro = adafruit_sht31d.SHT31D(i2c) # init hygrometer
 therm = adafruit_mcp9808.MCP9808(i2c) # init thermometer
 
+sensor_header = ["Pressure(Pa)","Altitude(m)","TempBaro(C)",
+                 "Humidity(%)","TempHygro(C)","TempTherm(C)"]
+
 def sense(timestamp = None): # read i2c sensors
     # read barometer
     pressure = baro.pressure
@@ -56,6 +59,11 @@ session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
 for i in range(4):
     session.next()
 
+gps_header = ["Date(y-m-d)","Time(h:m:s)","TimeError(s)",
+              "Latitude(deg)","LatError(deg)","Longitide(deg)","LonError(deg)",
+              "Altitude(m)","AltError(m)","Climb(m/s)","ClimbError(m/s)",
+              "Track(deg)","TrackError(deg)","Speed(m/s)","SpeedError(m/s)"]
+    
 def locate(timestamp = None): # read gps - https://gpsd.gitlab.io/gpsd/gpsd_json.html
     report = session.next()
     data = [None] * 15
@@ -103,17 +111,11 @@ def log(data, header, file =  directory + "data/log.csv"): # create or update lo
 
 def main(mode = 0): # snap pics and collect data
     if mode is 1:
-        print("ignoring switch")
+        print("mode 1 (ignore switch)")
     if mode is 2:
-        print("ignoring switch, no images")
+        print("mode 2 (ignore switch, no images)")
     device = ["System"] + ["MPL3115A2"]*3 + ["SHT31D"]*2 + ["MCP9808"] + ["GPS"]*15
-    header = ["Timestamp(s)",
-              "Pressure(Pa)","Altitude(m)","TempBaro(C)",
-              "Humidity(%)","TempHygro(C)","TempTherm(C)",
-              "Date(y-m-d)","Time(h:m:s)","TimeError(s)",
-              "Latitude(deg)","LatError(deg)","Longitide(deg)","LonError(deg)",
-              "Altitude(m)","AltError(m)","Climb(m/s)","ClimbError(m/s)",
-              "Track(deg)","TrackError(deg)","Speed(m/s)","SpeedError(m/s)"]
+    header = ["Timestamp(s)"] + sensor_header + gps_header
     print(*header,sep='\t')
     while True: # spins forever
         while (switch.value is False) or (mode in [1,2]): # while switch is on
