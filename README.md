@@ -1,8 +1,7 @@
-
-
-![drawing](https://images.vexels.com/media/users/3/126635/isolated/preview/87fabfeab4b01aa3d5338bf1c0c67fe6-2-open-logo-wings-02-by-vexels.png)
 # icarus
 _an Intelligent, Cheap, And Reliable University Satellite_
+
+![drawing](https://images.vexels.com/media/users/3/126635/isolated/preview/87fabfeab4b01aa3d5338bf1c0c67fe6-2-open-logo-wings-02-by-vexels.png)
 
 ### Setting up software
 First clone this repo onto the Raspberry Pi:
