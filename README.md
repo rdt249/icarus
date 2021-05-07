@@ -5,7 +5,10 @@
 _an Intelligent, Cheap, And Reliable University Satellite_
 
 ### Setting up software
-Use `git clone github.com/rdt249/icarus` to clone this repository onto a Raspberry Pi.
+First clone this repo onto the Raspberry Pi:
+```
+git clone github.com/rdt249/icarus
+```
 Make sure the Pi has been set up with the default RES Lab configuration (upgraded to Python 3, installed Jupyter and CircuitPython, etc)
 
 After cloning the repo, the Pi must be configured to launch icarus.py on boot.
