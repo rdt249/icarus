@@ -52,11 +52,13 @@ To pass input arguments (see above), use the optional input `main`.
 icarus.main(mode=1) # start main icarus loop ignoring switch
 icarus.main(mode=2) # start main icarus loop ignoring switch and without pictures
 ```
-After importing icarus, you can also use the functions in icarus.py such as sense() and locate():
+After importing icarus, you can also use the functions in icarus.py such as sense(), locate(), and log():
 ```
-import icarus
+import icarus, time
+timestamp = int(time.time()) # get timestamp
 sensor_data = icarus.sense() # read i2c sensors
-print(sensor_data)
 gps_data = icarus.locate() # read gps data
-print(gps_data)
+data = [timestamp] + sensor_data + gps_data # format data
+header = ["Timestamp(s)"] + icarus.sensor_header + icarus.gps_header # format header
+icarus.log(data,header) # creates or updates csv log at icarus/data/log.csv
 ```
