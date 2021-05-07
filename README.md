@@ -1,3 +1,7 @@
+![drawing](https://scp-com.s3.amazonaws.com/314a1a15/University_of_Tennessee_at_Chattanooga_logo.svg.png)
+<br>
+![drawing](https://i.imgur.com/GIZFPgy.png)
+
 # icarus
 _an Intelligent, Cheap, And Reliable University Satellite_
 
