@@ -40,7 +40,7 @@ This feature can be disabled via input arguments when icarus.py is called. Set u
 If X = 1, the Pi will take pics and record data regardless of value on pin 26.
 If X = 2, the Pi will record data regardless of pin 26, without pictures.
 
-### Running icarus inside a Jupyter Notebook
+### Running icarus inside a Python script or Jupyter Notebook
 
 Running the main icarus loop can be done within a Python script or notebook with the following lines:
 ```
