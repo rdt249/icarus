@@ -1,4 +1,8 @@
+
+
 # icarus
+Intelligent, Cheap, and Reliable University Satellite
+![drawing](https://images.vexels.com/media/users/3/126635/isolated/preview/87fabfeab4b01aa3d5338bf1c0c67fe6-2-open-logo-wings-02-by-vexels.png)
 
 ### Setting up software
 Use `git clone github.com/rdt249/icarus` to clone this repository onto a Raspberry Pi.
@@ -28,3 +32,24 @@ This feature can be disabled via input arguments when icarus.py is called. Set u
 ```
 If X = 1, the Pi will take pics and record data regardless of value on pin 26.
 If X = 2, the Pi will record data regardless of pin 26, without pictures.
+
+### Running icarus inside a Jupyter Notebook
+
+Running the main icarus loop can be done within a Python script or notebook with the following lines:
+```
+import icarus
+icarus.main() # start main icarus loop
+```
+To pass input arguments (see above), use the optional input `main`.
+```
+icarus.main(mode=1) # start main icarus loop ignoring switch
+icarus.main(mode=2) # start main icarus loop ignoring switch and without pictures
+```
+After importing icarus, you can also use the functions in icarus.py such as sense() and locate():
+```
+import icarus
+sensor_data = icarus.sense() # read i2c sensors
+print(sensor_data)
+gps_data = icarus.locate() # read gps data
+print(gps_data)
+```
