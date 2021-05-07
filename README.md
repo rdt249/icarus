@@ -1,8 +1,8 @@
 
 
-# icarus
-Intelligent, Cheap, and Reliable University Satellite
 ![drawing](https://images.vexels.com/media/users/3/126635/isolated/preview/87fabfeab4b01aa3d5338bf1c0c67fe6-2-open-logo-wings-02-by-vexels.png)
+# icarus
+an Intelligent, Cheap, and Reliable University Satellite
 
 ### Setting up software
 Use `git clone github.com/rdt249/icarus` to clone this repository onto a Raspberry Pi.
