@@ -148,7 +148,7 @@ def main(mode = 0): # snap pics and collect data
 
 # main loop
 if __name__ == "__main__": # main function
-    if sys.argv[1] is not None: # if input arguments exist
+    if len(sys.argv) > 1: # if input arguments exist
         main(mode = int(sys.argv[1])) # send input argument
     else:
         main() # no input arguments
