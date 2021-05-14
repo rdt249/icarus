@@ -44,6 +44,7 @@ The camera and GPS will not be usable by any other scripts while icarus.py is ru
 ```
 sudo pkill -9 -f icarus.py
 ```
+If that doesn't work, you could bust out the sledge hammer: `sudo killall python`
 
 ### Setting up hardware
 
