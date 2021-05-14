@@ -1,2 +1,0 @@
-Timestamp(s),Pressure(Pa),Altitude(m),TempBaro(C),Humidity(%),TempHygro(C),TempTherm(C),Date(y-m-d),Time(h:m:s),TimeError(s),Latitude(deg),LatError(deg),Longitide(deg),LonError(deg),Altitude(m),AltError(m),Climb(m/s),ClimbError(m/s),Track(deg),TrackError(deg),Speed(m/s),SpeedError(m/s)
-1620403580,99715.75,133.68953994048982,17.9375,52.416266117341884,17.696650644693676,17.625,,,,35.027116667,,-85.276691667,,198.8,,,,,,,
