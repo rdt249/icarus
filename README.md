@@ -10,7 +10,7 @@ _an Intelligent, Cheap, And Reliable University Satellite_
 ### Setting up software
 First clone this repo onto the Raspberry Pi:
 ```
-git clone github.com/rdt249/icarus
+git clone https://github.com/rdt249/icarus
 ```
 Make sure the Pi has been set up with the default RES Lab configuration (upgraded to Python 3, installed Jupyter and CircuitPython, etc)
 
