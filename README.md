@@ -23,7 +23,7 @@ Make sure the Pi has been set up with the default RES Lab configuration (upgrade
 
 Next you need to install the Python libraries used by the icarus.py script. If `sudo python icarus.py` runs without error, you're good to go. If not, you should install each of the dependencies manually:
 ```
-sudo apt-get install gpsd gpsd-clients
+sudo apt-get install gpsd gpsd-clients python-gps
 sudo pip install gps
 sudo pip install adafruit_circuitpython_mcp9808
 sudo pip install adafruit_circuitpython_sht31d
