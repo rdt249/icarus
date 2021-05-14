@@ -7,13 +7,6 @@ _an Intelligent, Cheap, And Reliable University Satellite_
 
 ![drawing](https://images.vexels.com/media/users/3/126635/isolated/preview/87fabfeab4b01aa3d5338bf1c0c67fe6-2-open-logo-wings-02-by-vexels.png)
 
-### Installing dependencies
-
-```
-sudo apt-get install gpsd gpsd-clients
-sudo pip install gps
-```
-
 ### Setting up software
 First clone this repo onto the Raspberry Pi:
 ```
@@ -23,8 +16,7 @@ Make sure the Pi has been set up with the default RES Lab configuration (upgrade
 
 Next you need to install the Python libraries used by the icarus.py script. If `sudo python icarus.py` runs without error, you're good to go. If not, you should install each of the dependencies manually:
 ```
-sudo apt-get install gpsd gpsd-clients
-sudo pip install gps
+sudo apt-get install gpsd gpsd-clients python-gps
 sudo pip install adafruit_circuitpython_mcp9808
 sudo pip install adafruit_circuitpython_sht31d
 sudo pip install adafruit_circuitpython_mpl3115a2
