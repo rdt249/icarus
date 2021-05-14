@@ -17,19 +17,24 @@ switch_pin = board.D26 # switch input (active low)
 directory = "/home/pi/icarus/"
 
 # init switch
-switch = dio.DigitalInOut(switch_pin) # declare switch pin
-switch.direction = dio.Direction.INPUT # as input
+def init_switch():
+    global switch
+    switch = dio.DigitalInOut(switch_pin) # declare switch pin
+    switch.direction = dio.Direction.INPUT # as input
 
 # init camera
-camera = picamera.PiCamera() # declare camera
-camera.vflip = True # flip images vertically
-camera.resolution = (2592,1944) # max resolution = 2592 x 1944
+def init_camera():
+    global camera
+    camera = picamera.PiCamera() # declare camera
+    camera.resolution = (2592,1944) # max resolution = 2592 x 1944
 
 # init i2c modules
-i2c = board.I2C() # init i2c bus
-baro = adafruit_mpl3115a2.MPL3115A2(i2c) # init barometer
-hygro = adafruit_sht31d.SHT31D(i2c) # init hygrometer
-therm = adafruit_mcp9808.MCP9808(i2c) # init thermometer
+def init_sensors():
+    i2c = board.I2C() # init i2c bus
+    global baro, hygro, therm
+    baro = adafruit_mpl3115a2.MPL3115A2(i2c) # init barometer
+    hygro = adafruit_sht31d.SHT31D(i2c) # init hygrometer
+    therm = adafruit_mcp9808.MCP9808(i2c) # init thermometer
 
 sensor_header = ["Pressure(Pa)","Altitude(m)","TempBaro(C)",
                  "Humidity(%)","TempHygro(C)","TempTherm(C)"]
@@ -52,12 +57,14 @@ def sense(timestamp = None): # read i2c sensors
 
 
 # init gps - https://learn.adafruit.com/adafruit-ultimate-gps-on-the-raspberry-pi/setting-everything-up
-os.system("sudo killall gpsd")
-os.system("sudo gpsd /dev/serial0 -F /var/run/gpsd.sock")
-session = gps.gps("localhost", "2947")
-session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
-for i in range(4):
-    session.next()
+def init_gps():
+    os.system("sudo killall gpsd")
+    os.system("sudo gpsd /dev/serial0 -F /var/run/gpsd.sock")
+    global session
+    session = gps.gps("localhost", "2947")
+    session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
+    for i in range(4):
+        session.next()
 
 gps_header = ["Date(y-m-d)","Time(h:m:s)","TimeError(s)",
               "Latitude(deg)","LatError(deg)","Longitide(deg)","LonError(deg)",
@@ -110,6 +117,10 @@ def log(data, header, file =  directory + "data/log.csv"): # create or update lo
         filewriter.writerow(data) # write data
 
 def main(mode = 0): # snap pics and collect data
+    init_switch()
+    init_camera()
+    init_sensors()
+    init_gps()
     if mode is 1:
         print("mode 1 (ignore switch)")
     if mode is 2:
@@ -137,7 +148,7 @@ def main(mode = 0): # snap pics and collect data
 
 # main loop
 if __name__ == "__main__": # main function
-    if len(sys.argv) > 1: # if input arguments exist
+    if sys.argv[1] is not None: # if input arguments exist
         main(mode = int(sys.argv[1])) # send input argument
     else:
         main() # no input arguments
