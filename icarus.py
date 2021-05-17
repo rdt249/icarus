@@ -15,6 +15,7 @@ from func_timeout import func_timeout # necessary evil
 # script config
 increment = 10 # time increment in seconds
 switch_pin = board.D26 # switch input (active low)
+led_pin = board.D6 # led output (flashes during every sample)
 beeper_pin = board.D13 # beeper pin (active high)
 beeper_altitude = 155 # if the altitude drops below this level, the beeper turns on
 directory = "/home/pi/icarus/"
@@ -27,6 +28,17 @@ def init_switch():
         return switch
     except:
         print("icarus.init_switch() failed")
+        return None
+    
+# init led
+def init_led():
+    try:
+        led = dio.DigitalInOut(led_pin)
+        led.direction = dio.Direction.OUTPUT
+        led.value = False
+        return led
+    except:
+        print("icarus.init_led() failed")
         return None
     
 # init beeper
@@ -185,6 +197,7 @@ def main(mode = 0): # snap pics and collect data
     if mode is 2:
         print("mode 2 (ignore switch, no images)")
     switch, camera, baro, hygro, therm, session = init_modules()
+    led = init_led()
     beeper = init_beeper()
     device = ["System"] + ["MPL3115A2"]*3 + ["SHT31D"]*2 + ["MCP9808"] + ["GPS"]*15
     header = ["Timestamp(s)"] + sensor_header + gps_header
@@ -192,6 +205,7 @@ def main(mode = 0): # snap pics and collect data
     while True: # spins forever
         while (switch.value is False) or (mode in [1,2]): # while switch is on
             start = time.time() # record start time
+            led.value = True
             data = [int(start)] # start with timestamp
             # snap picture
             file_name = directory + "pic/" + str(data[0]) + ".jpg" # format file name
@@ -217,6 +231,7 @@ def main(mode = 0): # snap pics and collect data
             if session is None:
                 session = init_gps()
             # wait until increment is over
+            led.value = False
             elapsed = time.time() - start # compute elapsed time
             if elapsed < increment: # if increment not exceeded
                 time.sleep(increment - elapsed) # wait for increment
