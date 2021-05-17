@@ -10,70 +10,133 @@ import sys # argument vector
 import os # navigating file system
 import csv # creating and editing csvs
 import gps # gps
+from func_timeout import func_timeout # necessary evil
 
 # script config
 increment = 10 # time increment in seconds
 switch_pin = board.D26 # switch input (active low)
+beeper_pin = board.D13 # beeper pin (active high)
+beeper_altitude = 155 # if the altitude drops below this level, the beeper turns on
 directory = "/home/pi/icarus/"
 
 # init switch
 def init_switch():
-    global switch
-    switch = dio.DigitalInOut(switch_pin) # declare switch pin
-    switch.direction = dio.Direction.INPUT # as input
+    try:
+        switch = dio.DigitalInOut(switch_pin) # declare switch pin
+        switch.direction = dio.Direction.INPUT # as input
+        return switch
+    except:
+        print("icarus.init_switch() failed")
+        return None
+    
+# init beeper
+def init_beeper():
+    try:
+        beeper = dio.DigitalInOut(beeper_pin)
+        beeper.direction = dio.Direction.OUTPUT
+        beeper.value = False
+        return beeper
+    except:
+        print("icarus.init_beeper() failed")
+        return None
 
 # init camera
 def init_camera():
-    global camera
-    camera = picamera.PiCamera() # declare camera
-    camera.resolution = (2592,1944) # max resolution = 2592 x 1944
+    try:
+        camera = picamera.PiCamera() # declare camera
+        camera.resolution = (2592,1944) # max resolution = 2592 x 1944
+        return camera
+    except:
+        print("icarus.init_camera() failed")
+        return None
 
 # init i2c modules
-def init_sensors():
+def init_baro():
     i2c = board.I2C() # init i2c bus
-    global baro, hygro, therm
-    baro = adafruit_mpl3115a2.MPL3115A2(i2c) # init barometer
-    hygro = adafruit_sht31d.SHT31D(i2c) # init hygrometer
-    therm = adafruit_mcp9808.MCP9808(i2c) # init thermometer
+    try:
+        baro = adafruit_mpl3115a2.MPL3115A2(i2c) # init barometer
+        return baro
+    except:
+        print("icarus.init_baro() failed")
+        return None
+    
+def init_hygro():
+    i2c = board.I2C() # init i2c bus
+    try:
+        hygro = adafruit_sht31d.SHT31D(i2c) # init hygrometer
+        return hygro
+    except:
+        print("icarus.init_hygro() failed")
+        return None
+
+def init_therm():
+    i2c = board.I2C() # init i2c bus
+    try:
+        therm = adafruit_mcp9808.MCP9808(i2c) # init thermometer
+        return therm
+    except:
+        print("icarus.init_therm() failed")
+        return None
+    
+# init gps - https://learn.adafruit.com/adafruit-ultimate-gps-on-the-raspberry-pi/setting-everything-up
+def init_gps(timeout = 1):
+    # refresh gpsd
+    os.system("sudo killall gpsd")
+    os.system("sudo gpsd /dev/serial0 -F /var/run/gpsd.sock")
+    # init gps
+    try:
+        session = gps.gps("localhost", "2947")
+        session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
+        for i in range(4):
+            try:
+                func_timeout(1,session.next())
+            except:
+                return None
+        return session
+    except:
+        print("icarus.init_gps() failed")
+        return None
+    
+# init modules
+def init_modules():
+    global switch, camera, baro, hygro, therm, session
+    switch = init_switch()
+    camera = init_camera()
+    baro = init_baro()
+    hygro = init_hygro()
+    therm = init_therm()
+    session = init_gps()
+    return [switch,camera,baro,hygro,therm,session]
 
 sensor_header = ["Pressure(Pa)","Altitude(m)","TempBaro(C)",
                  "Humidity(%)","TempHygro(C)","TempTherm(C)"]
 
-def sense(timestamp = None): # read i2c sensors
+def sense(): # read i2c sensors
     # read barometer
-    pressure = baro.pressure
-    altitude = baro.altitude
-    temp_b = baro.temperature
+    data = [None] * 6
+    if baro is not None:
+        data[0] = baro.pressure
+        data[1] = baro.altitude
+        data[2] = baro.temperature
     # read hygrometer
-    humidity = hygro.relative_humidity
-    temp_h = hygro.temperature
+    if hygro is not None:
+        data[3] = hygro.relative_humidity
+        data[4] = hygro.temperature
     # read thermometer
-    temp_t = therm.temperature
-    # format data
-    data = [pressure,altitude,temp_b,humidity,temp_h,temp_t]
-    if timestamp is not None:
-        data = [timestamp] + data
+    if therm is not None:
+        data[5] = therm.temperature
     return data
-
-
-# init gps - https://learn.adafruit.com/adafruit-ultimate-gps-on-the-raspberry-pi/setting-everything-up
-def init_gps():
-    os.system("sudo killall gpsd")
-    os.system("sudo gpsd /dev/serial0 -F /var/run/gpsd.sock")
-    global session
-    session = gps.gps("localhost", "2947")
-    session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
-    for i in range(4):
-        session.next()
 
 gps_header = ["Date(y-m-d)","Time(h:m:s)","TimeError(s)",
               "Latitude(deg)","LatError(deg)","Longitide(deg)","LonError(deg)",
               "Altitude(m)","AltError(m)","Climb(m/s)","ClimbError(m/s)",
               "Track(deg)","TrackError(deg)","Speed(m/s)","SpeedError(m/s)"]
     
-def locate(timestamp = None): # read gps - https://gpsd.gitlab.io/gpsd/gpsd_json.html
-    report = session.next()
+def locate(): # read gps - https://gpsd.gitlab.io/gpsd/gpsd_json.html
     data = [None] * 15
+    if session is None:
+        return data
+    report = session.next()
     while report['class'] != 'TPV':
         report = session.next()
     if 'time' in report:
@@ -117,14 +180,12 @@ def log(data, header, file =  directory + "data/log.csv"): # create or update lo
         filewriter.writerow(data) # write data
 
 def main(mode = 0): # snap pics and collect data
-    init_switch()
-    init_camera()
-    init_sensors()
-    init_gps()
     if mode is 1:
         print("mode 1 (ignore switch)")
     if mode is 2:
         print("mode 2 (ignore switch, no images)")
+    switch, camera, baro, hygro, therm, session = init_modules()
+    beeper = init_beeper()
     device = ["System"] + ["MPL3115A2"]*3 + ["SHT31D"]*2 + ["MCP9808"] + ["GPS"]*15
     header = ["Timestamp(s)"] + sensor_header + gps_header
     print(*header,sep='\t')
@@ -134,14 +195,28 @@ def main(mode = 0): # snap pics and collect data
             data = [int(start)] # start with timestamp
             # snap picture
             file_name = directory + "pic/" + str(data[0]) + ".jpg" # format file name
-            if mode in [0,1]: # if images should be saved
-                camera.capture(file_name) # save pic
             # read i2c sensors
             data += sense()
             # read gps
             data += locate()
             print(*data,sep='\t')
             log(data,header)
+            # check altitude for beeper status
+            if data[2] < beeper_altitude:
+                beeper.value = True
+                time.sleep(1)
+                beeper.value = False
+                time.sleep(4)
+                beeper.value = True
+                time.sleep(1)
+                beeper.value = False
+            # get image
+            if mode in [0,1,3]: # if images should be saved
+                camera.capture(file_name) # save pic
+            # try to re-init failed modules
+            if session is None:
+                session = init_gps()
+            # wait until increment is over
             elapsed = time.time() - start # compute elapsed time
             if elapsed < increment: # if increment not exceeded
                 time.sleep(increment - elapsed) # wait for increment

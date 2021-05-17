@@ -21,7 +21,11 @@ sudo pip install adafruit_circuitpython_mcp9808
 sudo pip install adafruit_circuitpython_sht31d
 sudo pip install adafruit_circuitpython_mpl3115a2
 ```
-Now that all the dependencies are install, the Pi can be configured to launch icarus.py on boot.
+And then set up the GPS daemon:
+```
+sudo gpsd /dev/serial0 -F /var/run/gpsd.sock
+```
+Then reboot the Pi. Now that all the dependencies are installed, the Pi can be configured to launch icarus.py on boot.
 Edit crontab with `crontab -e` and add the following lines at the end:
 ```
 # launch icarus script on reboot
@@ -32,9 +36,9 @@ is missing the Pi will never finish booting.
 
 The standard increment between pics and data samples is 10 seconds. This can be changed by simply editing `increment` in icarus.py.
 
-The camera and GPS will not be usable by any other scripts while icarus.py is running in the background. To kill the script use:
+The camera and GPS will not be usable by any other scripts while icarus.py is running in the background. List all background Python scripts with `ps -fA | grep python`. To kill the script use:
 ```
-sudo pkill -9 -f icarus.py
+sudo pkill -9 -f /home/pi/icarus/icarus.py
 ```
 If that doesn't work, you could bust out the sledge hammer: `sudo killall python`
 
