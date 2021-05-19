@@ -17,7 +17,8 @@ increment = 10 # time increment in seconds
 switch_pin = board.D26 # switch input (active low)
 led_pin = board.D6 # led output (flashes during every sample)
 beeper_pin = board.D13 # beeper pin (active high)
-beeper_altitude = 155 # if the altitude drops below this level, the beeper turns on
+beeper_altitude = 132 # if the altitude drops below this level, the beeper turns on
+camera_enabled = False
 directory = "/home/pi/icarus/"
 
 # init switch
@@ -225,7 +226,7 @@ def main(mode = 0): # snap pics and collect data
                 time.sleep(1)
                 beeper.value = False
             # get image
-            if mode in [0,1,3]: # if images should be saved
+            if camera_enabled: # if images should be saved
                 camera.capture(file_name) # save pic
             # try to re-init failed modules
             if session is None:
