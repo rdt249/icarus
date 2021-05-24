@@ -9,8 +9,7 @@ import adafruit_mpl3115a2 # barometer
 import sys # argument vector
 import os # navigating file system
 import csv # creating and editing csvs
-import gps # gps
-from func_timeout import func_timeout # a necessary evil
+import gps # default gps library
 
 # script config
 increment = 10 # time increment in seconds
@@ -84,17 +83,14 @@ def init_therm():
 # init gps - https://learn.adafruit.com/adafruit-ultimate-gps-on-the-raspberry-pi/setting-everything-up
 def init_gps(timeout = 1):
     # refresh gpsd
-    os.system("sudo killall gpsd")
-    os.system("sudo gpsd /dev/serial0 -F /var/run/gpsd.sock")
+    #os.system("sudo killall gpsd")
+    #os.system("sudo gpsd /dev/serial0 -F /var/run/gpsd.sock")
     # init gps
     try:
         session = gps.gps("localhost", "2947")
         session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
         for i in range(4):
-            try:
-                func_timeout(1,session.next())
-            except:
-                return None
+            session.next()
         return session
     except:
         print("icarus.init_gps() failed")
@@ -212,9 +208,6 @@ def main(mode = 0): # snap pics and collect data
         # get image
         if camera_enabled: # if images should be saved
             camera.capture(file_name) # save pic
-        # try to re-init failed modules
-        if session is None:
-            session = init_gps()
         # wait until increment is over
         led.value = False
         elapsed = time.time() - start # compute elapsed time
