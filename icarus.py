@@ -10,26 +10,16 @@ import sys # argument vector
 import os # navigating file system
 import csv # creating and editing csvs
 import gps # gps
-from func_timeout import func_timeout # necessary evil
+from func_timeout import func_timeout # a necessary evil
 
 # script config
 increment = 10 # time increment in seconds
-switch_pin = board.D26 # switch input (active low)
-led_pin = board.D6 # led output (flashes during every sample)
-beeper_pin = board.D13 # beeper pin (active high)
-beeper_altitude = 132 # if the altitude drops below this level, the beeper turns on
-camera_enabled = False
+camera_enabled = True # pictures are saved in icarus/pic, named with a timestamp
+beeper_enabled = True # if true, beeper will turn on below the set altitude
+beeper_altitude = 140 # if the altitude drops below this level, the beeper turns on
+beeper_pin = board.D4 # beeper pin (active high)
+led_pin = board.D17 # led output (flashes during every sample)
 directory = "/home/pi/icarus/"
-
-# init switch
-def init_switch():
-    try:
-        switch = dio.DigitalInOut(switch_pin) # declare switch pin
-        switch.direction = dio.Direction.INPUT # as input
-        return switch
-    except:
-        print("icarus.init_switch() failed")
-        return None
     
 # init led
 def init_led():
@@ -112,14 +102,13 @@ def init_gps(timeout = 1):
     
 # init modules
 def init_modules():
-    global switch, camera, baro, hygro, therm, session
-    switch = init_switch()
+    global camera, baro, hygro, therm, session
     camera = init_camera()
     baro = init_baro()
     hygro = init_hygro()
     therm = init_therm()
     session = init_gps()
-    return [switch,camera,baro,hygro,therm,session]
+    return [camera,baro,hygro,therm,session]
 
 sensor_header = ["Pressure(Pa)","Altitude(m)","TempBaro(C)",
                  "Humidity(%)","TempHygro(C)","TempTherm(C)"]
@@ -193,53 +182,45 @@ def log(data, header, file =  directory + "data/log.csv"): # create or update lo
         filewriter.writerow(data) # write data
 
 def main(mode = 0): # snap pics and collect data
-    if mode is 1:
-        print("mode 1 (ignore switch)")
-    if mode is 2:
-        print("mode 2 (ignore switch, no images)")
-    switch, camera, baro, hygro, therm, session = init_modules()
+    camera, baro, hygro, therm, session = init_modules()
     led = init_led()
     beeper = init_beeper()
     device = ["System"] + ["MPL3115A2"]*3 + ["SHT31D"]*2 + ["MCP9808"] + ["GPS"]*15
     header = ["Timestamp(s)"] + sensor_header + gps_header
     print(*header,sep='\t')
     while True: # spins forever
-        while (switch.value is False) or (mode in [1,2]): # while switch is on
-            start = time.time() # record start time
-            led.value = True
-            data = [int(start)] # start with timestamp
-            # snap picture
-            file_name = directory + "pic/" + str(data[0]) + ".jpg" # format file name
-            # read i2c sensors
-            data += sense()
-            # read gps
-            data += locate()
-            print(*data,sep='\t')
-            log(data,header)
-            # check altitude for beeper status
-            if data[2] < beeper_altitude:
-                beeper.value = True
-                time.sleep(1)
-                beeper.value = False
-                time.sleep(4)
-                beeper.value = True
-                time.sleep(1)
-                beeper.value = False
-            # get image
-            if camera_enabled: # if images should be saved
-                camera.capture(file_name) # save pic
-            # try to re-init failed modules
-            if session is None:
-                session = init_gps()
-            # wait until increment is over
-            led.value = False
-            elapsed = time.time() - start # compute elapsed time
-            if elapsed < increment: # if increment not exceeded
-                time.sleep(increment - elapsed) # wait for increment
+        start = time.time() # record start time
+        led.value = True
+        data = [int(start)] # start with timestamp
+        # snap picture
+        file_name = directory + "pic/" + str(data[0]) + ".jpg" # format file name
+        # read i2c sensors
+        data += sense()
+        # read gps
+        data += locate()
+        print(*data,sep='\t')
+        log(data,header)
+        # check altitude for beeper status
+        if data[2] < beeper_altitude and beeper_enabled:
+            beeper.value = True
+            time.sleep(1)
+            beeper.value = False
+            time.sleep(4)
+            beeper.value = True
+            time.sleep(1)
+            beeper.value = False
+        # get image
+        if camera_enabled: # if images should be saved
+            camera.capture(file_name) # save pic
+        # try to re-init failed modules
+        if session is None:
+            session = init_gps()
+        # wait until increment is over
+        led.value = False
+        elapsed = time.time() - start # compute elapsed time
+        if elapsed < increment: # if increment not exceeded
+            time.sleep(increment - elapsed) # wait for increment
 
 # main loop
 if __name__ == "__main__": # main function
-    if len(sys.argv) > 1: # if input arguments exist
-        main(mode = int(sys.argv[1])) # send input argument
-    else:
-        main() # no input arguments
+    main()
