@@ -12,7 +12,7 @@ First clone this repo onto the Raspberry Pi:
 ```
 git clone https://github.com/rdt249/icarus
 ```
-Make sure the Pi has been set up with the default RES Lab configuration (upgraded to Python 3, installed Jupyter and CircuitPython, etc)
+Make sure the Pi has been set up with the default RES Lab configuration (upgraded to Python 3, installed Jupyter and CircuitPython, etc). Also make sure that all the necessary interfaces are enabled, namely: SSH, Camera, I2C, and Serial Port (these can be enabled via `sudo raspi-config`).
 
 Next you need to install the Python libraries used by the icarus.py script. If `sudo python icarus.py` runs without error, you're good to go. If not, you should install each of the dependencies manually:
 ```
@@ -25,7 +25,8 @@ And then set up the GPS daemon:
 ```
 sudo gpsd /dev/serial0 -F /var/run/gpsd.sock
 ```
-Then reboot the Pi. Now that all the dependencies are installed, the Pi can be configured to launch icarus.py on boot.
+If you have issues with the GPS, check out [this Adafruit guide](https://learn.adafruit.com/adafruit-ultimate-gps-hat-for-raspberry-pi/use-gpsd).
+Now reboot the Pi. Now that all the dependencies are installed, the Pi can be configured to launch icarus.py on boot.
 Edit crontab with `crontab -e` and add the following lines at the end:
 ```
 # launch icarus script on reboot
@@ -42,32 +43,25 @@ sudo pkill -9 -f /home/pi/icarus/icarus.py
 ```
 If that doesn't work, you could bust out the sledge hammer: `sudo killall python`
 
-### Setting up hardware
-
-Besides obvious things like the camera, sensors, and power supply, there is only one other step for setting up the Pi.
-The main loop in icarus.py is disabled unless pin 26 on the GPIO is grounded. The best way to do this is with a SPDT switch.
-Alternatively you could use a pullup resistor plus a button to manually initiate samples, or just a simple jumper.
-
-This feature can be disabled via input arguments when icarus.py is called. Set up input arguments by editing the line in crontab:
-```
-# launch icarus script on reboot
-@reboot sudo python /home/pi/icarus/icarus.py X &
-```
-If X = 1, the Pi will take pics and record data regardless of value on pin 26.
-If X = 2, the Pi will record data regardless of pin 26, without pictures.
-
-### Running icarus inside a Python script or Jupyter Notebook
+### Using icarus.py inside another Python script or a Jupyter Notebook
 
 If icarus.py is running in the background, make sure to kill it first (see above).
 Running the main icarus loop can be done within a Python script or notebook with the following lines:
 ```
 import icarus
-icarus.main() # start main icarus loop
+icarus.main() # start main loop
 ```
-To pass input arguments (see above), use the optional input `main`.
+You can edit parameters before calling `main()` to configure your flight (below are the default configurations):
 ```
-icarus.main(mode=1) # start main icarus loop ignoring switch
-icarus.main(mode=2) # start main icarus loop ignoring switch and without pictures
+import icarus
+icarus.increment = 10 # seconds between each sample and pic
+icarus.camera_enabled = True # enable/disable camera
+icarus.beeper_enabled = True # enable/disable beeper
+icarus.beeper_altitude = 1000 # if the device drops below this altitude (in meters), the beeper turns on
+icarus.beeper_pin = board.D4 # beeper pin (active high)
+icarus.led_pin = board.D17 # led output (flashes during every sample)
+icarus.directory = "/home/pi/icarus/" # inside the directory folder, there should be subfolders named "pic" and "data"
+icarus.main() # start main loop
 ```
 After importing icarus, you can also use the functions in icarus.py such as sense(), locate(), and log():
 ```
