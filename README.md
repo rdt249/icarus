@@ -63,7 +63,7 @@ icarus.led_pin = board.D17 # led output (flashes during every sample)
 icarus.directory = "/home/pi/icarus/" # inside the directory folder, there should be subfolders named "pic" and "data"
 icarus.main() # start main loop
 ```
-After importing icarus, you can also use the functions in icarus.py such as sense(), locate(), and log():
+After importing icarus, you can also use the functions in icarus.py such as `sense()`, `locate()`, and `log()`:
 ```
 import icarus, time
 timestamp = int(time.time()) # get timestamp
